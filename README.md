@@ -1,6 +1,10 @@
 # Swarmexec
-
 swarmexec executes command in swarm service
+
+## Install
+```
+pip install git+https://github.com/filimon43g/swarmexec.git
+```
 
 ## Usage
 ```
