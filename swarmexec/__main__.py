@@ -1,6 +1,6 @@
 import os
 import sys
-from swarm_cluster import SwarmCluster
+from swarmexec.swarm_cluster import SwarmCluster
 from configparser import ConfigParser
 
 usage = "swarmexec <service_name> <command>"

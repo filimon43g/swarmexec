@@ -3,6 +3,11 @@ import logging
 import paramiko
 from colorama import Fore
 from colorama import Style
+import termios
+import tty
+import socket
+import sys
+from paramiko.py3compat import u
 
 
 class SwarmCluster:
@@ -17,10 +22,20 @@ class SwarmCluster:
         container = self._get_container_by_service_name(service_name)
         if container:
             print(Fore.BLUE + container.labels.get('com.docker.swarm.task.name') + Style.RESET_ALL, end=" > ")
-            print(" ".join(cmd), "\n")
-            exict_code, output = container.exec_run(cmd=cmd)
-            print_output(output)
-            exit(exict_code)
+            print(Fore.BLUE + " ".join(cmd) + Style.RESET_ALL, end=" > ")
+            exict_code, channel = container.exec_run(
+                cmd=cmd,
+                stdin=True,
+                stdout=True, 
+                stderr=True, 
+                demux=True, 
+                stream=True, 
+                socket=True,
+                tty=True
+                )
+
+            posix_shell(channel)
+
         else:
             logging.error(f'Could not find running container for service {service_name}')
             exit(1)
@@ -43,7 +58,6 @@ class SwarmCluster:
             if self._nodes_mapping:
                 if node_hostname not in self._nodes_mapping:
                     raise Exception(f"Could not find {node_hostname} in node mpping {self._nodes_mapping}")
-            # docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
             try:
                 docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
             except paramiko.ssh_exception.PasswordRequiredException:
@@ -70,3 +84,36 @@ class SwarmCluster:
 def print_output(output):
     for line in output.decode("utf-8").split('\n'):
         print(line)
+
+
+def posix_shell(chan):
+    import select
+
+    oldtty = termios.tcgetattr(sys.stdin)
+    try:
+        sys.stdout.write("\r\n")
+        tty.setraw(sys.stdin.fileno())
+        tty.setcbreak(sys.stdin.fileno())
+        chan.settimeout(0.0)
+
+        while True:
+            r, w, e = select.select([chan, sys.stdin], [], [])
+            if chan in r:
+                try:
+                    x = u(chan.recv(1024))
+                    if len(x) == 0:
+                        sys.stdout.write("\r\n*** EOF\r\n")
+                        break
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
+                except socket.timeout:
+                    pass
+            if sys.stdin in r:
+                x = sys.stdin.read(1)
+                if len(x) == 0:
+                    break
+                chan.send(x)
+
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
+
