@@ -8,6 +8,6 @@ setup(
             "swarmexec = swarmexec.__main__:main",
         ]
     },
-    install_requires=["docker", "paramiko", "configparser"],
+    install_requires=["docker", "paramiko", "configparser", "colorama"],
     packages=['swarmexec']
 )

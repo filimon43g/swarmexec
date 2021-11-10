@@ -1,5 +1,9 @@
 import docker
 import logging
+import paramiko
+from colorama import Fore
+from colorama import Style
+
 
 class SwarmCluster:
 
@@ -12,6 +16,8 @@ class SwarmCluster:
         """ Execute command and exit """
         container = self._get_container_by_service_name(service_name)
         if container:
+            print(Fore.BLUE + container.labels.get('com.docker.swarm.task.name') + Style.RESET_ALL, end=" > ")
+            print(" ".join(cmd), "\n")
             exict_code, output = container.exec_run(cmd=cmd)
             print_output(output)
             exit(exict_code)
@@ -27,6 +33,7 @@ class SwarmCluster:
                     container_id = task['Status']['ContainerStatus']['ContainerID']
                     node_hostname = self.client.nodes.get(task['NodeID']).attrs['Description']['Hostname']
                     client = docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname))
+                    print(Fore.BLUE + node_hostname  + Style.RESET_ALL, end=" > ")
                     return client.containers.get(container_id)
 
     def _find_all_nodes(self):
@@ -36,12 +43,21 @@ class SwarmCluster:
             if self._nodes_mapping:
                 if node_hostname not in self._nodes_mapping:
                     raise Exception(f"Could not find {node_hostname} in node mpping {self._nodes_mapping}")
+            # docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
             try:
                 docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
-            except Exception as e:
+            except paramiko.ssh_exception.PasswordRequiredException:
                 logging.error(f"Could not connect to {self._get_node_ssh_url(node_hostname)}")
-                logging.error(e.args[1])
-                exit(e.args[0])
+                logging.error("Please put you public ssh key to the node first, http://linuxproblem.org/art_9.html")
+                exit(1)
+            except docker.errors.DockerException as de:
+                logging.error(de.args)
+                logging.error("Have you added the user to the docker group?")
+                exit(2)
+            except Exception as e:
+                logging.error(e.args)
+                logging.error(f"Could not connect to {self._get_node_ssh_url(node_hostname)}")
+                exit(3)
             
     def _get_node_ssh_url(self, node_hostname):
         if self._nodes_mapping:
