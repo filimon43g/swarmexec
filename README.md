@@ -31,3 +31,15 @@ How to create ssh keys http://linuxproblem.org/art_9.html
 export DOCKER_HOST=ssh://<manager node hostname>
 swarmexec <service_name> <command>
 ```
+or
+```
+swarmexec --hostname username@<manager node hostname> <command>
+```
+
+## Examples
+```
+swarmexec --hostname username@example.com nginx_proxy "ls -l /"
+```
+```
+swarmexec --hostname username@example.com nginx_proxy bash
+```

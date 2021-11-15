@@ -1,16 +1,36 @@
 import os
 import sys
 from swarmexec.swarm_cluster import SwarmCluster
+from swarmexec.swarm_host import validate_ssh_connection_string, SwarmHost
 from configparser import ConfigParser
+import argparse
 
 usage = "swarmexec <service_name> <command>"
 config_file = 'swarm_config.ini'
 
+def get_args():
+    ap = argparse.ArgumentParser(prog="swarmexec", description="Execute command on swarm services")
+    ap.add_argument("-H", "--host", type=validate_ssh_connection_string, help="Swarm ssh host")
+    ap.add_argument('service', nargs=1, help='service name')
+    ap.add_argument('cmd', nargs='*', help='command')
+    return ap.parse_args()
+
+def get_docker_host(args):
+    if args['host']:
+        docker_host = args['host']
+    else:
+        docker_host = os.environ.get('DOCKER_HOST')
+    if docker_host:
+        return SwarmHost(docker_host)
+
+
 def main():
-    if len(sys.argv) > 2:
-        docker_host = os.environ['DOCKER_HOST']
-        service_name = sys.argv[1]
-        cmd = sys.argv[2:]
+    args = vars(get_args())
+    docker_host = get_docker_host(args)
+
+    if docker_host and args['service'] and args['cmd']:
+        service_name = args['service']
+        cmd = args['cmd']
 
         nodes_mapping = {}
         if os.path.exists(config_file):

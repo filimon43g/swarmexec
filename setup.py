@@ -2,12 +2,12 @@ from setuptools import setup
 
 setup(
     name="swarmexec",
-    version='0.2.0',
+    version='0.3',
     entry_points = {
         "console_scripts": [
             "swarmexec = swarmexec.__main__:main",
         ]
     },
-    install_requires=["docker", "paramiko", "configparser", "colorama"],
+    install_requires=["docker", "paramiko", "configparser", "colorama", "validators"],
     packages=['swarmexec']
 )

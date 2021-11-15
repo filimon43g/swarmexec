@@ -8,12 +8,16 @@ import tty
 import socket
 import sys
 from paramiko.py3compat import u
+import shlex
+
+from .swarm_host import SwarmHost
 
 
 class SwarmCluster:
 
-    def __init__(self, base_url, nodes_mapping={}) -> None:
-        self.client = docker.DockerClient(base_url=base_url)
+    def __init__(self, base_url:SwarmHost, nodes_mapping={}) -> None:
+        self._base_url = base_url
+        self.client = docker.DockerClient(base_url=self._base_url.ssh_connection_string())
         self._nodes_mapping = nodes_mapping
         self._find_all_nodes()
 
@@ -24,7 +28,7 @@ class SwarmCluster:
             print(Fore.BLUE + container.labels.get('com.docker.swarm.task.name') + Style.RESET_ALL, end=" > ")
             print(Fore.BLUE + " ".join(cmd) + Style.RESET_ALL, end=" > ")
             exict_code, channel = container.exec_run(
-                cmd=cmd,
+                cmd=shlex.split(cmd[0]),
                 stdin=True,
                 stdout=True, 
                 stderr=True, 
@@ -78,7 +82,7 @@ class SwarmCluster:
             if node_hostname in self._nodes_mapping:
                 return "ssh://" + self._nodes_mapping[node_hostname]
         else:
-            return "ssh://" + node_hostname
+            return self._base_url.ssh_connection_string(hostname=node_hostname)
 
 
 def print_output(output):
