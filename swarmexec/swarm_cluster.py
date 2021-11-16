@@ -51,17 +51,24 @@ class SwarmCluster:
                 if task['Status']['State'] == 'running':
                     container_id = task['Status']['ContainerStatus']['ContainerID']
                     node_hostname = self.client.nodes.get(task['NodeID']).attrs['Description']['Hostname']
+                    node_hostname = self._get_mapped_host(node_hostname)
                     client = docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname))
                     print(Fore.BLUE + node_hostname  + Style.RESET_ALL, end=" > ")
                     return client.containers.get(container_id)
+
+    def _get_mapped_host(self, hostname):
+        if self._nodes_mapping:
+            if hostname not in self._nodes_mapping:
+                raise Exception(f"Could not find {hostname} in node mpping {self._nodes_mapping}")
+            hostname = self._nodes_mapping[hostname]
+        print(f"Host {hostname}")
+        return hostname
 
     def _find_all_nodes(self):
         """ Find all nodes and check connection """
         for node in self.client.nodes.list():
             node_hostname = node.attrs['Description']['Hostname']
-            if self._nodes_mapping:
-                if node_hostname not in self._nodes_mapping:
-                    raise Exception(f"Could not find {node_hostname} in node mpping {self._nodes_mapping}")
+            node_hostname = self._get_mapped_host(node_hostname)
             try:
                 docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
             except paramiko.ssh_exception.PasswordRequiredException:
@@ -78,11 +85,7 @@ class SwarmCluster:
                 exit(3)
             
     def _get_node_ssh_url(self, node_hostname):
-        if self._nodes_mapping:
-            if node_hostname in self._nodes_mapping:
-                return "ssh://" + self._nodes_mapping[node_hostname]
-        else:
-            return self._base_url.ssh_connection_string(hostname=node_hostname)
+        return self._base_url.ssh_connection_string(hostname=node_hostname)
 
 
 def print_output(output):
