@@ -61,7 +61,6 @@ class SwarmCluster:
             if hostname not in self._nodes_mapping:
                 raise Exception(f"Could not find {hostname} in node mpping {self._nodes_mapping}")
             hostname = self._nodes_mapping[hostname]
-        print(f"Host {hostname}")
         return hostname
 
     def _find_all_nodes(self):
