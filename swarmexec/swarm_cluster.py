@@ -9,6 +9,7 @@ import socket
 import sys
 from paramiko.py3compat import u
 import shlex
+import validators
 
 from .swarm_host import SwarmHost
 
@@ -66,7 +67,11 @@ class SwarmCluster:
     def _find_all_nodes(self):
         """ Find all nodes and check connection """
         for node in self.client.nodes.list():
+            
             node_hostname = node.attrs['Description']['Hostname']
+            if self._base_url.domain:
+                if not node_hostname.endswith(self._base_url.domain):
+                    node_hostname += "." + self._base_url.domain
             node_hostname = self._get_mapped_host(node_hostname)
             try:
                 docker.DockerClient(base_url=self._get_node_ssh_url(node_hostname)).ping()
@@ -90,7 +95,7 @@ class SwarmCluster:
 def print_output(output):
     for line in output.decode("utf-8").split('\n'):
         print(line)
-
+        
 
 def posix_shell(chan):
     import select

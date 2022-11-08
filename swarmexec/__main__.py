@@ -12,7 +12,7 @@ def get_args():
     ap = argparse.ArgumentParser(prog="swarmexec", description="Execute command on swarm services")
     ap.add_argument("-H", "--host", type=validate_ssh_connection_string, help="Swarm ssh host")
     ap.add_argument('service', nargs=1, help='service name')
-    ap.add_argument('cmd', nargs='*', help='command')
+    ap.add_argument('cmd', nargs=argparse.REMAINDER, help='command to run')
     return ap.parse_args()
 
 def get_docker_host(args):

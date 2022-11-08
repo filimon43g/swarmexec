@@ -33,13 +33,13 @@ swarmexec <service_name> <command>
 ```
 or
 ```
-swarmexec --hostname username@<manager node hostname> <command>
+swarmexec -H username@<manager node hostname> <command>
 ```
 
 ## Examples
 ```
-swarmexec --hostname username@example.com nginx_proxy "ls -l /"
+swarmexec -H username@example.com nginx_proxy "ls -l /"
 ```
 ```
-swarmexec --hostname username@example.com nginx_proxy bash
+swarmexec -H username@example.com nginx_proxy bash
 ```

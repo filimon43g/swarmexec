@@ -4,6 +4,7 @@ class SwarmHost:
 
     def __init__(self, hostname:str):
         self.user, self.hostname = get_user_hostname(hostname)
+        self.domain = get_domain_from_host(self.hostname)
 
     def ssh_connection_string(self, hostname=None):
         if not hostname:
@@ -21,6 +22,12 @@ def get_user_hostname(hostname:str):
         user = hostname.split("@")[0]
         hostname = hostname.split("@")[1]
     return user, hostname
+
+
+def get_domain_from_host(hostname:str):
+    if validators.domain(hostname):
+        if len(hostname.split(".")) == 3:
+            return ".".join(hostname.split(".")[1:])
 
 
 def validate_ssh_connection_string(orig_hostname:str):
