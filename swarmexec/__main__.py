@@ -30,7 +30,7 @@ def main():
 
     if docker_host and args['service'] and args['cmd']:
         service_name = args['service']
-        cmd = args['cmd']
+        cmd = " ".join(args['cmd'])
 
         nodes_mapping = {}
         if os.path.exists(config_file):

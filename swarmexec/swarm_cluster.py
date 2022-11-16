@@ -29,7 +29,7 @@ class SwarmCluster:
             print(Fore.BLUE + container.labels.get('com.docker.swarm.task.name') + Style.RESET_ALL, end=" > ")
             print(Fore.BLUE + " ".join(cmd) + Style.RESET_ALL, end=" > ")
             exict_code, channel = container.exec_run(
-                cmd=shlex.split(cmd[0]),
+                cmd=shlex.split(cmd),
                 stdin=True,
                 stdout=True, 
                 stderr=True, 
