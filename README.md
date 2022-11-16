@@ -38,7 +38,7 @@ swarmexec -H username@<manager node hostname> <command>
 
 ## Examples
 ```
-swarmexec -H username@example.com nginx_proxy "ls -l /"
+swarmexec -H username@example.com nginx_proxy ls -l /
 ```
 ```
 swarmexec -H username@example.com nginx_proxy bash
