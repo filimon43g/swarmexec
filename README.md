@@ -14,6 +14,7 @@ In swarm_config.ini map your node host names with public hostnames or nodes IPs 
 ```
 
 ### On all swarm nodes
+
 #### Put ssh keys and add your user to the docker group 
 ```
 ssh username@node1.example
